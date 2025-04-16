@@ -49,6 +49,17 @@ if csat_file and aht_file and e2e_file and cases_file:
     merged = csat_df.merge(aht_df, on=['l4_name', 'l5_name', 'l6_name'], how="outer")
     merged = merged.merge(e2e_df, on=['l4_name', 'l5_name', 'l6_name'], how="outer")
     merged = merged.merge(cases_df, on=['l4_name', 'l5_name', 'l6_name'], how="outer")
+    
+    # Adicionar símbolo de "%" na coluna "CSAT (%)"
+    if "CSAT (%)" in merged.columns:
+        merged["CSAT (%)"] = merged["CSAT (%)"].apply(lambda x: f"{x}%" if pd.notnull(x) else x)
+    
+    # Filtro para a coluna l4_name a partir da planilha Cases
+    opcoes_l4 = cases_df["l4_name"].unique().tolist()
+    l4_selecionados = st.sidebar.multiselect("Filtrar por l4_name", options=opcoes_l4, default=opcoes_l4)
+    
+    # Filtrar a tabela consolidada
+    merged = merged[merged["l4_name"].isin(l4_selecionados)]
 
     st.success("✅ Tabela final consolidada com sucesso!")
     st.dataframe(merged)
@@ -56,6 +67,5 @@ if csat_file and aht_file and e2e_file and cases_file:
     # Download
     csv = merged.to_csv(index=False).encode("utf-8-sig")
     st.download_button("📥 Baixar CSV Consolidado", data=csv, file_name="kpis_consolidados.csv", mime="text/csv")
-
 else:
-    st.info("🔼 Faça o upload dos 4 arquivos para iniciar a consolidação.")   
+    st.info("🔼 Faça o upload dos 4 arquivos para iniciar a consolidação.")
